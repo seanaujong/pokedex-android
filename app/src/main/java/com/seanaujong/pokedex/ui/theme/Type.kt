@@ -1,14 +1,11 @@
 package com.seanaujong.pokedex.ui.theme
 
 import androidx.compose.material3.Typography
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.googlefonts.Font
 import androidx.compose.ui.text.googlefonts.GoogleFont
-import androidx.compose.ui.unit.sp
 import com.seanaujong.pokedex.R
 
 val provider = GoogleFont.Provider(
@@ -33,17 +30,16 @@ val RobotoFontFamily = FontFamily(
 )
 
 val RobotoCondensedFontFamily = FontFamily(
-    Font(googleFont = RobotoCondensedFont, fontProvider = provider),
-    Font(resId = R.font.roboto_condensed_regular),
+    Font(googleFont = RobotoCondensedFont, fontProvider = provider, weight = FontWeight.Normal),
+    Font(resId = R.font.roboto_condensed_regular, weight = FontWeight.Normal),
     Font(googleFont = RobotoCondensedFont, fontProvider = provider, weight = FontWeight.Light),
-    Font(resId = R.font.roboto_condensed_light)
+    Font(resId = R.font.roboto_condensed_light, weight = FontWeight.Light)
 )
+
+private val defaultTypography = Typography()
 
 // Set of Material typography styles to start with
 val Typography = Typography(
-    bodyLarge = TextStyle(
-        fontFamily = RobotoCondensedFontFamily,
-        fontSize = 20.sp,
-        color = Color.Blue
-    )
+    titleLarge = defaultTypography.titleLarge.copy(fontFamily = RobotoCondensedFontFamily),
+    bodyLarge = defaultTypography.bodyLarge.copy(fontFamily = RobotoFontFamily)
 )

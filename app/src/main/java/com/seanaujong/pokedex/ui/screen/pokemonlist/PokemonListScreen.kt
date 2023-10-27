@@ -172,7 +172,7 @@ fun PokedexEntry(
             )
             Text(
                 text = entry.pokemonName,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
