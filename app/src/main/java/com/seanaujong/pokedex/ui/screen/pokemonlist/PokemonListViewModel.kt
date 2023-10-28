@@ -81,17 +81,13 @@ class PokemonListViewModel @Inject constructor(
                     endReached.value = curPage * PAGE_SIZE >= result.data!!.count
                     val pokedexEntries = result.data.results.mapIndexed { index, entry ->
                         /**
-                         * For a URL like https://pokeapi.co/api/v2/pokemon/11/
-                         * 1. If the URL ends with "/", then drop the "/"
-                         * 2. Grab the "11"
+                         * For a URL like https://pokeapi.co/api/v2/pokemon/123/
+                         * 1. Sanitize to https://pokeapi.co/api/v2/pokemon/123
+                         * 2. Take the "123"
                          */
-                        val number = if (entry.url.endsWith("/")) {
-                            entry.url
-                                .dropLast(1)
-                                .takeLastWhile { it.isDigit() }
-                        } else {
-                            entry.url.takeLastWhile { it.isDigit() }
-                        }
+                        val number = entry.url
+                            .dropLastWhile { !it.isDigit() }
+                            .takeLastWhile { it.isDigit() }
                         val url = "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${number}.png"
                         PokedexListEntry(entry.name.capitalize(Locale.ROOT), url, number.toInt())
                     }
