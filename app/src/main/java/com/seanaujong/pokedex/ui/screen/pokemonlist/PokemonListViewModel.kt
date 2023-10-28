@@ -3,6 +3,7 @@ package com.seanaujong.pokedex.ui.screen.pokemonlist
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -13,6 +14,7 @@ import com.seanaujong.pokedex.repository.PokemonRepository
 import com.seanaujong.pokedex.util.Constants.PAGE_SIZE
 import com.seanaujong.pokedex.util.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 import javax.inject.Inject
@@ -29,11 +31,48 @@ class PokemonListViewModel @Inject constructor(
     var isLoading = mutableStateOf(false)
     var endReached = mutableStateOf(false)
 
+    private var cachedPokemonList = listOf<PokedexListEntry>()
+    private var isSearchStarting = true
+    var isSearching = mutableStateOf(false)
+
+    /**
+     * TODO: this is a client side search because the api doesn't offer search capabilities
+     * That means the search function can't find any pokemon we haven't loaded.
+     * We should find a way to find pokemon we haven't loaded yet.
+     * Proposal: fetch all pokemon and store them with Room
+     */
+    fun searchPokemonList(query: String) {
+        val listToSearch = if (isSearchStarting) {
+            pokemonList.value
+        } else {
+            cachedPokemonList
+        }
+        viewModelScope.launch(Dispatchers.Default) {
+            if (query.isEmpty()) {
+                pokemonList.value = cachedPokemonList
+                isSearching.value = false
+                isSearchStarting = true
+                return@launch
+            }
+            val results = listToSearch.filter {
+                it.pokemonName.contains(query.trim(), ignoreCase = true) ||
+                        it.number.toString() == query.trim()
+            }
+            if (isSearchStarting) {
+                cachedPokemonList = pokemonList.value
+                isSearchStarting = false
+            }
+            pokemonList.value = results
+            isSearching.value = true
+        }
+    }
+
     init {
         loadPokemonPaginated()
     }
 
     fun loadPokemonPaginated() {
+        Log.d("debug", curPage.toString())
         viewModelScope.launch {
             val result = repository.getPokemonList(PAGE_SIZE, curPage * PAGE_SIZE)
             when (result) {
