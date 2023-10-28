@@ -3,7 +3,6 @@ package com.seanaujong.pokedex.ui.screen.pokemonlist
 import android.graphics.Bitmap
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import android.util.Log
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
@@ -12,8 +11,9 @@ import androidx.palette.graphics.Palette
 import com.seanaujong.pokedex.data.models.PokedexListEntry
 import com.seanaujong.pokedex.repository.PokemonRepository
 import com.seanaujong.pokedex.util.Constants.PAGE_SIZE
-import com.seanaujong.pokedex.util.Resource
+import com.seanaujong.pokedex.util.Content
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -21,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PokemonListViewModel @Inject constructor(
-    private val repository: PokemonRepository
+    private val repository: PokemonRepository,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ViewModel() {
 
     private var curPage = 0
@@ -47,7 +48,7 @@ class PokemonListViewModel @Inject constructor(
         } else {
             cachedPokemonList
         }
-        viewModelScope.launch(Dispatchers.Default) {
+        viewModelScope.launch(dispatcher) {
             if (query.isEmpty()) {
                 pokemonList.value = cachedPokemonList
                 isSearching.value = false
@@ -72,14 +73,11 @@ class PokemonListViewModel @Inject constructor(
     }
 
     fun loadPokemonPaginated() {
-        Log.d("debug", curPage.toString())
         viewModelScope.launch {
-            val result = repository.getPokemonList(PAGE_SIZE, curPage * PAGE_SIZE)
-            when (result) {
-                is Resource.Success -> {
-                    // TODO: using !! suggests that the way [Resource] works currently sucks
-                    endReached.value = curPage * PAGE_SIZE >= result.data!!.count
-                    val pokedexEntries = result.data.results.mapIndexed { index, entry ->
+            when (val result = repository.getPokemonList(PAGE_SIZE, curPage * PAGE_SIZE)) {
+                is Content.Success -> {
+                    endReached.value = curPage * PAGE_SIZE >= result.data.count
+                    val pokedexEntries = result.data.results.map { entry ->
                         /**
                          * For a URL like https://pokeapi.co/api/v2/pokemon/123/
                          * 1. Sanitize to https://pokeapi.co/api/v2/pokemon/123
@@ -98,12 +96,12 @@ class PokemonListViewModel @Inject constructor(
                     pokemonList.value += pokedexEntries
                 }
 
-                is Resource.Loading -> {
+                is Content.Loading -> {
                     // TODO: use this instead of isLoading
                 }
 
-                is Resource.Error -> {
-                    loadError.value = result.message!!
+                is Content.Error -> {
+                    loadError.value = result.message
                     isLoading.value = false
                 }
             }

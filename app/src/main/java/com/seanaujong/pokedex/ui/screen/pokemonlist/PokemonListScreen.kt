@@ -128,6 +128,7 @@ fun PokemonList(
     navController: NavController,
     viewModel: PokemonListViewModel = hiltViewModel()
 ) {
+    // TODO: we should have a uiState of SUCCESS, LOADING, and ERROR
     val pokemonList by remember { viewModel.pokemonList }
     val endReached by remember { viewModel.endReached }
     val loadError by remember { viewModel.loadError }
