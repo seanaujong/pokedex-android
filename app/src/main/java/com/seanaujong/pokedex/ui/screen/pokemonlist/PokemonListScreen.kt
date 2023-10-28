@@ -3,10 +3,10 @@ package com.seanaujong.pokedex.ui.screen.pokemonlist
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +14,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -134,17 +135,17 @@ fun PokemonList(
     val isLoading by remember { viewModel.isLoading }
     val isSearching by remember { viewModel.isSearching }
 
-    LazyColumn(contentPadding = PaddingValues(16.dp)) {
-        val itemCount = if (pokemonList.size % 2 == 0) {
-            pokemonList.size / 2
-        } else {
-            pokemonList.size / 2 + 1
-        }
-        items(itemCount) {
-            if (it >= itemCount - 1 && !endReached && !isLoading && !isSearching) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 128.dp),
+        contentPadding = PaddingValues(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        itemsIndexed(pokemonList) { index, entry ->
+            if (index >= pokemonList.size - 1 && !endReached && !isLoading && !isSearching) {
                 viewModel.loadPokemonPaginated()
             }
-            PokedexRow(rowIndex = it, entries = pokemonList, navController = navController)
+            PokedexEntry(entry = entry, navController = navController)
         }
     }
 
@@ -203,9 +204,10 @@ fun PokedexEntry(
                     .build(),
                 contentDescription = entry.pokemonName,
                 loading = {
-                          CircularProgressIndicator(
-                              color = MaterialTheme.colorScheme.primary,
-                              modifier = Modifier.scale(0.5f))
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.scale(0.5f)
+                    )
                 },
                 onSuccess = {
                     viewModel.calcDominantColor(it.result.drawable) { color ->
@@ -223,35 +225,6 @@ fun PokedexEntry(
                 modifier = Modifier.fillMaxWidth()
             )
         }
-    }
-}
-
-// TODO: probably just use a FlowRow here
-@Composable
-fun PokedexRow(
-    rowIndex: Int,
-    entries: List<PokedexListEntry>,
-    navController: NavController
-) {
-    Column {
-        Row {
-            PokedexEntry(
-                entry = entries[rowIndex * 2],
-                navController = navController,
-                modifier = Modifier.weight(1f)
-            )
-            Spacer(modifier = Modifier.width(16.dp))
-            if (entries.size >= rowIndex * 2 + 2) {
-                PokedexEntry(
-                    entry = entries[rowIndex * 2 + 1],
-                    navController = navController,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                Spacer(modifier = Modifier.weight(1f))
-            }
-        }
-        Spacer(modifier = Modifier.height(16.dp))
     }
 }
 
