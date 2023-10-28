@@ -79,7 +79,6 @@ fun PokemonListScreen(
             ) {
                 viewModel.searchPokemonList(it)
             }
-            Spacer(modifier = Modifier.height(16.dp))
             PokemonList(navController = navController)
         }
     }
